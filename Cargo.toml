@@ -1,0 +1,27 @@
+[workspace]
+members = [
+    "motion-core",
+    "motion-mock",
+    "motion-leisai",
+    "motion-googol",
+    "motion-advantech",
+    "motion-cli",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+license = "MIT"
+description = "通用运动控制板卡抽象层 — Rust 实现"
+
+[workspace.dependencies]
+motion-core = { path = "motion-core" }
+motion-mock = { path = "motion-mock" }
+motion-leisai = { path = "motion-leisai" }
+motion-googol = { path = "motion-googol" }
+motion-advantech = { path = "motion-advantech" }
+thiserror = "1.0"
+libloading = "0.8"
+clap = { version = "4", features = ["derive"] }

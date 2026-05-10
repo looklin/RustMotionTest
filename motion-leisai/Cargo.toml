@@ -1,0 +1,12 @@
+[package]
+name = "motion-leisai"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+motion-core.workspace = true
+
+[features]
+default = []
+static = []

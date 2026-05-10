@@ -1,0 +1,14 @@
+[package]
+name = "motion-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "motion-cli"
+path = "src/main.rs"
+
+[dependencies]
+motion-core.workspace = true
+motion-mock.workspace = true
+clap.workspace = true
