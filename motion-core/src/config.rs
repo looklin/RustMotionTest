@@ -27,31 +27,43 @@ impl Default for CardConfig {
 
 impl CardConfig {
     /// 创建默认配置
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
     /// 设置轴数量
+    #[must_use]
     pub fn with_axis_count(mut self, count: usize) -> Self {
         self.axis_count = count;
         self
     }
 
     /// 设置板卡 ID
+    #[must_use]
     pub fn with_board_id(mut self, id: u16) -> Self {
         self.board_id = id;
         self
     }
 
     /// 设置超时
+    #[must_use]
     pub fn with_timeout(mut self, ms: u64) -> Self {
         self.timeout_ms = ms;
         self
     }
 
     /// 启用调试模式
+    #[must_use]
     pub fn with_debug(mut self, debug: bool) -> Self {
         self.debug = debug;
+        self
+    }
+
+    /// 设置配置文件路径
+    #[must_use]
+    pub fn with_config_path(mut self, path: impl Into<String>) -> Self {
+        self.config_path = Some(path.into());
         self
     }
 }

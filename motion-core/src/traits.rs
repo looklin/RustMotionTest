@@ -64,7 +64,7 @@ pub trait MotionCard: Send + Sync {
 }
 
 /// 运动轴统一接口
-pub trait Axis {
+pub trait Axis: Send + Sync {
     /// 轴索引
     fn axis_index(&self) -> usize;
 

@@ -18,6 +18,12 @@ pub struct MockCard {
     init_time: std::time::Instant,
 }
 
+impl Default for MockCard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MockCard {
     pub fn new() -> Self {
         let mut inputs = HashMap::new();
@@ -293,5 +299,128 @@ impl AxisTrait for MockAxis {
     fn disable_soft_limit(&mut self) {
         self.soft_limit_min = None;
         self.soft_limit_max = None;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use motion_core::config::CardConfig;
+    use motion_core::traits::MotionCard;
+
+    fn make_card() -> MockCard {
+        let mut card = MockCard::new();
+        card.initialize(&CardConfig::default().with_axis_count(4)).unwrap();
+        card
+    }
+
+    #[test]
+    fn test_initialize_and_close() {
+        let mut card = MockCard::new();
+        assert!(!card.status().is_initialized);
+
+        card.initialize(&CardConfig::default().with_axis_count(2)).unwrap();
+        assert!(card.status().is_initialized);
+        assert_eq!(card.axis_count(), 2);
+
+        card.close();
+        assert!(!card.status().is_initialized);
+    }
+
+    #[test]
+    fn test_axis_enable_disable() {
+        let mut card = make_card();
+        let axis = card.get_axis(0).unwrap();
+        assert!(!axis.is_enabled());
+
+        card.get_axis(0).unwrap().enable();
+        assert!(card.get_axis(0).unwrap().is_enabled());
+
+        card.get_axis(0).unwrap().disable();
+        assert!(!card.get_axis(0).unwrap().is_enabled());
+    }
+
+    #[test]
+    fn test_absolute_and_relative_move() {
+        let mut card = make_card();
+        card.get_axis(0).unwrap().enable();
+
+        card.move_absolute(0, 100.0, 50.0).unwrap();
+        assert_eq!(card.get_axis(0).unwrap().current_position(), 100.0);
+
+        card.move_relative(0, 50.0, 30.0).unwrap();
+        assert_eq!(card.get_axis(0).unwrap().current_position(), 150.0);
+    }
+
+    #[test]
+    fn test_axis_out_of_range() {
+        let mut card = make_card();
+        // axis_count is 4, so index 4 should be out of range
+        assert!(card.get_axis(4).is_err());
+    }
+
+    #[test]
+    fn test_not_initialized_error() {
+        let mut card = MockCard::new();
+        let result = card.move_absolute(0, 100.0, 50.0);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_io_operations() {
+        let mut card = make_card();
+
+        card.write_output(0, true);
+        assert!(card.read_input(0) == false); // input is separate from output
+
+        // Test bitmask operations
+        card.write_all_outputs(0b1010);
+        let inputs = card.read_all_inputs();
+        assert_eq!(inputs, 0);
+
+        card.set_input(1, true);
+        card.set_input(3, true);
+        let bitmask = card.read_all_inputs();
+        assert_eq!(bitmask, 0b1010);
+    }
+
+    #[test]
+    fn test_home() {
+        let mut card = make_card();
+        card.move_absolute(0, 200.0, 50.0).unwrap();
+        assert_eq!(card.get_axis(0).unwrap().current_position(), 200.0);
+
+        card.move_home(0, HomeMode::Auto).unwrap();
+        assert_eq!(card.get_axis(0).unwrap().current_position(), 0.0);
+    }
+
+    #[test]
+    fn test_jog_and_stop() {
+        let mut card = make_card();
+        let axis = card.get_axis(0).unwrap();
+        axis.jog_positive(100.0);
+        assert!(axis.is_moving());
+
+        card.stop_axis(0, StopMode::Immediate);
+        assert!(!card.get_axis(0).unwrap().is_moving());
+        assert_eq!(card.get_axis(0).unwrap().current_velocity(), 0.0);
+    }
+
+    #[test]
+    fn test_soft_limit() {
+        let mut card = make_card();
+        let axis = card.get_axis(0).unwrap();
+        axis.enable_soft_limit(-100.0, 100.0);
+        // Mock doesn't enforce limits, but it stores them
+        // Verify no panic on enable/disable cycle
+        card.get_axis(0).unwrap().disable_soft_limit();
+    }
+
+    #[test]
+    fn test_card_status_uptime() {
+        let card = make_card();
+        std::thread::sleep(std::time::Duration::from_millis(10));
+        let status = card.status();
+        assert!(status.uptime.as_millis() >= 10);
     }
 }

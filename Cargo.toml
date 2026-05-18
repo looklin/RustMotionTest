@@ -15,6 +15,9 @@ edition = "2021"
 rust-version = "1.70"
 license = "MIT"
 description = "通用运动控制板卡抽象层 — Rust 实现"
+repository = "https://github.com/looklin/RustMotionTest"
+keywords = ["motion-control", "cnc", "automation", "ffi", "industrial"]
+categories = ["hardware-support", "embedded"]
 
 [workspace.dependencies]
 motion-core = { path = "motion-core" }
